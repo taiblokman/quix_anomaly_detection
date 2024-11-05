@@ -2,3 +2,4 @@ quixstreams==2.9.0
 python-dotenv
 zstandard
 tqdm
+pandas

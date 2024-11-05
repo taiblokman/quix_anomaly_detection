@@ -5,7 +5,39 @@ metadata:
   version: 1.0
 
 # This section describes the Deployments of the data pipeline
-deployments: []
+deployments:
+  - name: producer
+    application: producer
+    version: latest
+    deploymentType: Service
+    resources:
+      cpu: 200
+      memory: 800
+      replicas: 1
+    variables:
+      - name: output
+        inputType: OutputTopic
+        required: false
+        value: stocks
+  - name: anomalydetector
+    application: anomalydetector
+    version: latest
+    deploymentType: Service
+    resources:
+      cpu: 200
+      memory: 800
+      replicas: 1
+    variables:
+      - name: input
+        inputType: InputTopic
+        required: false
+        value: stocks
+      - name: output
+        inputType: OutputTopic
+        required: false
+        value: anomalies
 
 # This section describes the Topics of the data pipeline
-topics: []
+topics:
+  - name: stocks
+  - name: anomalies

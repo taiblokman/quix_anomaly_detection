@@ -1,3 +1,4 @@
+import zstandard
 from quixstreams import Application  # import the Quix Streams modules for interacting with Kafka:
 # (see https://quix.io/docs/quix-streams/v2-0-latest/api-reference/quixstreams.html for more details)
 
@@ -5,6 +6,9 @@ from quixstreams import Application  # import the Quix Streams modules for inter
 import random
 import os
 import json
+import glob
+import tqdm
+import pandas as pd
 
 # for local dev, load env vars from a .env file
 from dotenv import load_dotenv
@@ -56,17 +60,26 @@ def main():
     # create a pre-configured Producer object.
     with app.get_producer() as producer:
         # iterate over the data from the hardcoded dataset
-        data_with_id = get_data()
-        for row_data in data_with_id:
+        files = glob.glob('nasdaq/*.zst')
+        files.sort()
 
-            json_data = json.dumps(row_data)  # convert the row to JSON
+        for file_path in tqdm.tqdm(files):
+            # print(file_path)
+            print(f'..processing file: {file_path}')
 
-            # publish the data to the topic
-            producer.produce(
-                topic=topic.name,
-                key=row_data['host'],
-                value=json_data,
-            )
+            data = pd.read_csv(file_path)
+            # print(data.head())
+            # break
+            for _, row in data.iterrows():
+                trade = row.to_dict()
+                json_data = json.dumps(trade)  # convert the row to JSON
+
+                # publish the data to the topic
+                producer.produce(
+                    topic=topic.name,
+                    key=trade['symbol'],
+                    value=json_data,
+                )
 
             # for more help using QuixStreams see docs:
             # https://quix.io/docs/quix-streams/introduction.html
